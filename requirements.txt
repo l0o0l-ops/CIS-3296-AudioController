@@ -1,0 +1,5 @@
+   vosk
+   sounddevice
+   google-genai
+   pydantic
+   python-dotenv
