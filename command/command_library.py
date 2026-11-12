@@ -17,6 +17,7 @@ motor_d = Motor(Port.D)
 motor_d.reset_angle(0)
 
 
+
 def move(speed, time):
     
     motor_b.run(speed)
@@ -31,7 +32,7 @@ def turn(angle):
     motor_a.run_target(300, angle)
     wait(1000)
 
-    move(500, 7000)
+    move(360, 3000)
 
     motor_a.run_target(300, 0)
 
@@ -55,7 +56,9 @@ def grab():
 
     return True
 
-
+move(-360, 4000)
+grab()
+move(720, 4000)
 
 
 
