@@ -1,5 +1,7 @@
-#Used so github ignores the .env file
-.env
-.venv/
-__pycache__/
 *.pyc
+.venv/
+models/
+.env
+__pycache__/
+.DS_Store
+*.egg-info/
