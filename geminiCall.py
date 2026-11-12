@@ -16,16 +16,16 @@ client = genai.Client()
 #Robot Functions
 #Below here will be the list of functions that model will be able to do
 #For now these are just placeholders for testing time delays in gemini and to see if it actually works or not
-def move_foward(distance: int):
-    print("Move foward", distance, "cm")
+def move_foward(time: int, speed: int):
+    print("Move foward")
 
-def move_backward(distance: int):
-    print("Move Backwards", distance, "cm")
+def move_backward(time: int, speed: int):
+    print("Move Backwards")
 
-def turn_left():
+def turn_left(degree: int):
     print("Turn Left")
 
-def turn_right():
+def turn_right(degree: int):
     print("Turn Right")
 
 def grab():
@@ -47,12 +47,16 @@ move_foward_tool = {
     "parameters": {
         "type": "object",
         "properties": {
-            "distance": {
+            "time": {
                 "type": "integer",
-                "description": "Distance to move in centimeters"
+                "description": "The amount of time in seconds the LEGO model should move foward for"
             },
+            "speed": {
+                "type": "integer",
+                "description": "The speed that the lego model should move with a slow speed being a value of 1000 and a high speed being a value 3000. Any value in between is an acceptable value"
+            }
         },
-        "required": ["distance"]
+        "required": ["time", "speed"],
     },
 }
 
@@ -64,13 +68,18 @@ move_backward_tool = {
     {
         "type": "object",
         "properties": {
-            "distance": 
+            "time": 
             {
                 "type": "integer",
-                "description": "Distance to move in centimeters"
+                "description": "The amount of time in seconds the LEGO set should move backwards for"
             },
+            "speed":
+            {
+                "type": "integer",
+                "description": "The speed that the lego model should move with a slow speed being a value of -1000 and a high speed being a value -3000. Any value in between is an acceptable value"
+            }
         },
-        "required": ["distance"]
+        "required": ["time", "speed"],
     }
 }
 
@@ -151,4 +160,3 @@ except Exception as e:
 finally:
     end = time.perf_counter()
     print(f"Response time: {end - start:.2f} seconds")
-print(interaction.output_text)
