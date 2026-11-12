@@ -5,12 +5,19 @@ from pybricks.tools import wait
 from pybricks.robotics import DriveBase
 
 hub = InventorHub()
-# ポートAに接続したモーターを1秒間正転させる
+#back wheel
 motor_b = Motor(Port.B)
+
+#front wheel angle
 motor_a = Motor(Port.A)
+motor_a.reset_angle(0)
+
+#arms
+motor_d = Motor(Port.D)
+motor_d.reset_angle(0)
 
 
-def move_forward(speed, time):
+def move(speed, time):
     
     motor_b.run(speed)
     wait(time)
@@ -18,42 +25,40 @@ def move_forward(speed, time):
 
     return True
 
-def turn_left():
+def turn(angle):
+
     
-
-
-    motor_a.reset_angle(0)
-    motor_a.run_target(300, 45)
+    motor_a.run_target(300, angle)
     wait(1000)
 
-    move_forward(500, 7000)
+    move(500, 7000)
 
     motor_a.run_target(300, 0)
 
     return True
 
 def grab():
-    motor_d = Motor(Port.D)
-    motor_b = Motor(Port.B)
-
-    motor_d.run(250)
-    wait(2500)
+    
+    motor_d.run_target(300, 360)
     
 
     wait(500)
-    
+
     motor_b.run(-200)
     wait(1000)
     motor_b.stop()
 
-
-
+    wait(500)
     
-    motor_d.run(-250)
-    wait(2500)
-    motor_d.stop()
+    motor_d.run_target(300, 0)
+    
+
+    return True
 
 
-turn_left()
+
+
+
+
 
 
