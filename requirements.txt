@@ -1,6 +1,6 @@
-   vosk
-   sounddevice
-   google-genai
-   pydantic
-   python-dotenv
+vosk
+sounddevice
+google-genai
+pydantic
+python-dotenv
 typer
