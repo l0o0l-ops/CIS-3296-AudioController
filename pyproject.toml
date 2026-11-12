@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [project.scripts]
-acctl = "cli:app"
+acctl = "acctl.cli:app"
 
 [tool.setuptools]
-py-modules = ["cli", "transcriber"]
+packages = ["acctl"]

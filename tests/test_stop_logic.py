@@ -1,14 +1,14 @@
 """Automated tests for Transcriber's text and stop-word logic.
 
 No microphone or model file is needed: Vosk is replaced with scripted fakes.
-Run from the project folder with:  python -m unittest test_stop_logic -v
+Run from the project folder with:  python -m unittest discover -s tests -t . -v
 """
 import json
 import unittest
 from unittest import mock
 
-import transcriber
-from transcriber import Transcriber
+from acctl import transcriber
+from acctl.transcriber import Transcriber
 
 
 def result_json(text):

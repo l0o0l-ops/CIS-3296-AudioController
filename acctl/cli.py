@@ -6,7 +6,7 @@ Usage:
 """
 import typer
 
-from transcriber import Transcriber
+from acctl.transcriber import Transcriber
 
 app = typer.Typer(help="AC: Audio Controller for the voice-controlled LEGO robot.")
 

@@ -1,5 +1,5 @@
-"""Manual microphone check. Run it directly: python3 test_transcriber.py"""
-from transcriber import Transcriber
+"""Manual microphone check. Run from the project folder: python3 -m tests.test_transcriber"""
+from acctl.transcriber import Transcriber
 
 
 if __name__ == "__main__":
