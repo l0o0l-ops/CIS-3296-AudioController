@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ac-audio-controller"
+version = "0.1.0"
+description = "Voice-controlled LEGO robot (CIS-3296)"
+requires-python = ">=3.10"
+dependencies = [
+    "typer",
+    "vosk",
+    "sounddevice",
+    "google-genai",
+    "pydantic",
+    "python-dotenv",
+]
+
+[project.scripts]
+acctl = "acctl.cli:app"
+
+[tool.setuptools]
+packages = ["acctl"]
