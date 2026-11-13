@@ -9,8 +9,10 @@ hub = InventorHub()
 motor_b = Motor(Port.B)
 
 #front wheel angle
+
 motor_a = Motor(Port.A)
 motor_a.reset_angle(0)
+
 
 #arms
 motor_d = Motor(Port.D)
@@ -56,9 +58,10 @@ def grab():
 
     return True
 
-move(-720, 4000)
+move(-720,3000)
 grab()
-move(720, 4000)
+move(720,3000)
+
 
 
 
