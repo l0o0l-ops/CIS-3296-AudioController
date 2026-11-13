@@ -56,7 +56,7 @@ def grab():
 
     return True
 
-move(-360, 4000)
+move(-720, 4000)
 grab()
 move(720, 4000)
 
