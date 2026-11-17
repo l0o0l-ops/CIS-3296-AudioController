@@ -21,3 +21,4 @@ acctl = "acctl.cli:app"
 
 [tool.setuptools]
 packages = ["acctl"]
+py-modules = ["geminiCall", "main"]

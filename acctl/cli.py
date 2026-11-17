@@ -1,8 +1,8 @@
 """Command-line entry point for the audio controller.
 
 Usage:
-    acctl start    keep listening for commands until you answer no or press Ctrl+C
-    acctl test     record one command and print what was heard
+    acctl start    run the full pipeline in main.py (Vosk -> Gemini -> robot)
+    acctl test     record one command and print what was heard (no Gemini)
 """
 import typer
 
@@ -19,7 +19,7 @@ def _show(result):
 
 @app.command()
 def test():
-    """Record one command and print what was heard."""
+    """Record one command and print what was heard (no Gemini)."""
     with Transcriber() as t:
         input("Press Enter to start talking...")
         t.start()
@@ -29,17 +29,8 @@ def test():
 
 @app.command()
 def start():
-    """Keep listening for commands until you answer no or press Ctrl+C."""
-    with Transcriber() as t:
-        print("Audio controller running. Ctrl+C to quit.")
-        try:
-            while True:
-                input("\nPress Enter to start talking...")
-                t.start()
-                input("Press Enter to stop...")
-                _show(t.stop())
-                if not typer.confirm("Keep recording?", default=True):
-                    break
-        except KeyboardInterrupt:
-            pass
-        print("\nAudio controller stopped.")
+    """Run the full pipeline: Vosk, then Gemini, then the robot."""
+    # Imported here, not at the top, because main.py loads the Gemini client,
+    # which needs the API key. This keeps `acctl test` and `--help` key-free.
+    from main import main
+    main()
