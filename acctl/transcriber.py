@@ -13,11 +13,14 @@ import json
 import queue
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 
 import sounddevice as sd
 from vosk import Model, KaldiRecognizer, SetLogLevel
 
-DEFAULT_MODEL_PATH = "models/vosk-model-small-en-us-0.15"
+# Project root is one level above this file (acctl/), so this works from any folder.
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_MODEL_PATH = PROJECT_ROOT / "models" / "vosk-model-small-en-us-0.15"
 BLOCKSIZE = 4000  # samples per audio chunk (about 0.25 s at 16 kHz)
 
 
@@ -30,7 +33,7 @@ class TranscriptResult:
 class Transcriber:
     def __init__(self, model_path=DEFAULT_MODEL_PATH):
         SetLogLevel(-1)
-        self._model = Model(model_path)
+        self._model = Model(str(model_path))
         self._samplerate = int(sd.query_devices(kind="input")["default_samplerate"])
         # Full vocabulary, so Gemini receives natural phrasing.
         self._recognizer = KaldiRecognizer(self._model, self._samplerate)
