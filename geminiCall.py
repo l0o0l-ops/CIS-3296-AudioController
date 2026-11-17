@@ -95,31 +95,3 @@ start = time.perf_counter()
 #This part here initalizes the AI model and defines the type of response we should be receiving from gemini
 #Also the reason for the time stuff here is so if it takes to long it will stop trying to execute the command
 
-
-try:
-    interaction = client.interactions.create(
-        model = "gemini-3.5-flash-lite",
-        input = "move foward 20 centimeters",
-        tools = [move_tool,
-                 turn_tool],
-        timeout=20,
-
-    )
-
-    for step in interaction.steps:
-        if step.type == "function_call":
-            function_to_call = available_functions[step.name]
-            function_to_call(**step.arguments)
-            print(step.name)
-            print(step.arguments)
-
-    
-
-
-except Exception as e:
-    print("Request failed:", type(e).__name__)
-    print(e)
-
-finally:
-    end = time.perf_counter()
-    print(f"Response time: {end - start:.2f} seconds")

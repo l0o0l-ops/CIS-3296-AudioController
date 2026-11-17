@@ -19,11 +19,27 @@ import json
 #load_dotenv()
 
 
+#Main pipeline: speech -> text (Vosk) -> command (Gemini) -> robot.
 
+#Run from the project folder:  python main.py
+import time 
+from acctl.transcriber import Transcriber
+
+
+def listen():
+    """Record one phrase and return the recognized text."""
+    with Transcriber() as t:
+        input("Press Enter to start talking...")
+        t.start()
+        input("Press Enter to stop...")
+        return t.stop().text
+
+text = listen()
+print(f'You said: "{text}"')
 try:
     interaction = geminiCall.client.interactions.create(
         model = "gemini-3.5-flash-lite",
-        input = "move foward 20 centimeters",
+        input = result.text, 
         tools = [geminiCall.move_tool,
                  geminiCall.turn_tool],
         timeout=20,
