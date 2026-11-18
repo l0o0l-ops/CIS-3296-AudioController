@@ -32,7 +32,11 @@ PYBRICKS_COMMAND_EVENT_CHAR_UUID = "c5f50002-8280-46da-89f4-6d8051e4aeef"
 HUB_NAME = "Temple"
 
 MODEL = "gemini-3.5-flash-lite"
-TOOLS = [geminiCall.move_tool, geminiCall.turn_tool]
+TOOLS = [geminiCall.move_forward_tool,
+        geminiCall.move_backward_tool,
+        geminiCall.turn_left_tool,
+        geminiCall.turn_right_tool,
+        geminiCall.grab_tool]
 
 
 def listen(t):
@@ -48,7 +52,6 @@ def listen(t):
 
 
 def ask_gemini(text):
-    """Send text to Gemini and return the function calls it chose."""
     started = time.perf_counter()
     try:
         interaction = geminiCall.client.interactions.create(
@@ -57,9 +60,21 @@ def ask_gemini(text):
             tools=TOOLS,
             timeout=20,
         )
-        return [(step.name, step.arguments)
-                for step in interaction.steps
-                if step.type == "function_call"]
+        function_calls = []
+
+        for step in interaction.steps:
+            if step.type == "function_call":
+                fc_step = step
+
+                # Find and execute the corresponding Python function
+                function_to_call = geminiCall.available_functions[fc_step.name]
+                result = function_to_call(**fc_step.arguments)
+
+                function_calls.append(
+                    (fc_step.name, fc_step.arguments)
+                )
+
+        return function_calls
     except Exception as e:
         print("Gemini request failed:", type(e).__name__)
         print(e)
