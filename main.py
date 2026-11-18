@@ -1,4 +1,4 @@
-import geminiCall
+
 from command import command_library
 
 #import gemini.py, commandlibrary.py, vosk.py
@@ -17,13 +17,13 @@ import json
 
 #from dotenv import load_dotenv
 #load_dotenv()
-
+import geminiCall
 
 
 try:
     interaction = geminiCall.client.interactions.create(
         model = "gemini-3.5-flash-lite",
-        input = "move foward 20 centimeters",
+        input = "turn 40 angles clockwise",
         tools = [geminiCall.move_tool,
                  geminiCall.turn_tool],
         timeout=20,

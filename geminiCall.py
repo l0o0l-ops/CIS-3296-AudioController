@@ -1,6 +1,7 @@
 #Initializing the client
 from google import genai
 import json
+from command import command_library
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -16,17 +17,17 @@ client = genai.Client()
 #Robot Functions
 #Below here will be the list of functions that model will be able to do
 #For now these are just placeholders for testing time delays in gemini and to see if it actually works or not
-def move(time: int, speed: int):
-    print("Move")
+# def move(time: int, speed: int):
+#     print("Move")
 
-def turn(degree: int):
-    print("Turn")
+# def turn(degree: int):
+#     print("Turn")
 
-def grab():
-    print("Grab the Object")
+# def grab():
+#     print("Grab the Object")
 
-def stop():
-    print("Stop")
+# def stop():
+#     print("Stop")
 
 '''
 Description for each function tool so that when gemini trys to assign a function it knows the data type that it should return and the description for each function
@@ -83,8 +84,8 @@ grab_tool = {
 }
 
 available_functions = {
-    "move": move,
-    "turn": turn,
+    "move": command_library.move,
+    "turn": command_library.turn,
 }
 
 
@@ -95,7 +96,7 @@ start = time.perf_counter()
 #This part here initalizes the AI model and defines the type of response we should be receiving from gemini
 #Also the reason for the time stuff here is so if it takes to long it will stop trying to execute the command
 
-
+'''
 try:
     interaction = client.interactions.create(
         model = "gemini-3.5-flash-lite",
@@ -123,3 +124,5 @@ except Exception as e:
 finally:
     end = time.perf_counter()
     print(f"Response time: {end - start:.2f} seconds")
+
+'''
