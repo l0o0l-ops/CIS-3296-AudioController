@@ -16,57 +16,91 @@ client = genai.Client()
 #Robot Functions
 #Below here will be the list of functions that model will be able to do
 #For now these are just placeholders for testing time delays in gemini and to see if it actually works or not
-def move(time: int, speed: int):
+def move_foward(time: int):
     print("Move")
+    return {"action": "move_foward", "status": "completed"}
 
-def turn(degree: int):
+def move_backward(time: int):
+    print("Move")
+    return {"action": "move", "status": "completed"}
+
+def turn_left(time: int):
+    print("Turn")
+
+def turn_right(time: int):
     print("Turn")
 
 def grab():
     print("Grab the Object")
 
-def stop():
-    print("Stop")
-
 '''
 Description for each function tool so that when gemini trys to assign a function it knows the data type that it should return and the description for each function
 '''
 
-move_tool = {
+move_foward_tool = {
     "type": "function",
-    "name": "move",
-    "description": "moves the lego model foward or backwards in a straight line",
+    "name": "move_foward",
+    "description": "moves the lego model fowards in a straight line",
     "parameters": {
         "type": "object",
         "properties": {
             "time": {
                 "type": "integer",
-                "description": "The amount of time in seconds the LEGO model should move for"
+                "description": "The amount of time in seconds the LEGO model should move for in seconds. If no time is specified return 2 seconds"
             },
-            "speed": {
-                "type": "integer",
-                "description": "The speed that the lego model should move with a foward motion being a positive value and a backwards motion being in the negative direction. The speed of the lego set should be assigned within the range of 1000 to 3000 with a smaller number being a slower speed"
-            }
         },
-        "required": ["time", "speed"],
+        "required": ["time"],
+    },
+}
+
+move_backward_tool = {
+    "type": "function",
+    "name": "move_backward",
+    "description": "moves the lego model backwards in a straight line",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "time": {
+                "type": "integer",
+                "description": "The amount of time in seconds the LEGO model should move for in seconds. If no time is specified return 2 seconds"
+            },
+        },
+        "required": ["time"],
     },
 }
 
 
 
-turn_tool = {
+turn_left_tool = {
     "type": "function",
-    "name": "turn",
-    "description": "Rotate the LEGO model to the left or right depending on the specified direction of the user. If the user asks to completly rotate the model, turn the model 180 degrees to the left so it is now in the opposite direction.",
+    "name": "turn_left",
+    "description": "Rotate the LEGO model to the left. If the user asks to completly rotate the model, turn the model 180 degrees to the left so it is now in the opposite direction.",
     "parameters":
     {
         "type": "object",
         "properties": {
-            "degree": {
-                "description": "To turn left, a positive degree from 1 to 359 should be given and to turn right, a negative degree from -1 to -359 should be returned"
+            "time": {
+                "description": "To turn left a time should be returned from 1 to 5 seconds. If no time is specified return 2 seconds"
             },
         },
-        "required": ["degree"]
+        "required": ["time"]
+    }
+}
+
+
+turn_right_tool = {
+    "type": "function",
+    "name": "turn_right",
+    "description": "Rotate the LEGO model to the right",
+    "parameters":
+    {
+        "type": "time",
+        "properties": {
+            "degree": {
+                "description": "To turn right, a time should be returned from 1 to 5 seconds. If no time is specified return 2 seconds"
+            },
+        },
+        "required": ["time"]
     }
 }
 
@@ -83,43 +117,10 @@ grab_tool = {
 }
 
 available_functions = {
-    "move": move,
-    "turn": turn,
+    "move_foward": move_foward,
+    "move_backward": move_backward,
+    "turn_left": turn_left,
+    "turn_right": turn_right,
+    "grab": grab
 }
 
-
-start = time.perf_counter()
-
-
-
-#This part here initalizes the AI model and defines the type of response we should be receiving from gemini
-#Also the reason for the time stuff here is so if it takes to long it will stop trying to execute the command
-
-
-try:
-    interaction = client.interactions.create(
-        model = "gemini-3.5-flash-lite",
-        input = "move foward 20 centimeters",
-        tools = [move_tool,
-                 turn_tool],
-        timeout=20,
-
-    )
-
-    for step in interaction.steps:
-        if step.type == "function_call":
-            function_to_call = available_functions[step.name]
-            function_to_call(**step.arguments)
-            print(step.name)
-            print(step.arguments)
-
-    
-
-
-except Exception as e:
-    print("Request failed:", type(e).__name__)
-    print(e)
-
-finally:
-    end = time.perf_counter()
-    print(f"Response time: {end - start:.2f} seconds")
