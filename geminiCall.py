@@ -1,6 +1,7 @@
 #Initializing the client
 from google import genai
 import json
+from command import command_library
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -16,30 +17,33 @@ client = genai.Client()
 #Robot Functions
 #Below here will be the list of functions that model will be able to do
 #For now these are just placeholders for testing time delays in gemini and to see if it actually works or not
-def move_foward(time: int):
-    print("Move")
-    return {"action": "move_foward", "status": "completed"}
+# def move_foward(time: int):
+#     print("Move")
+#     return {"action": "move_foward", "status": "completed"}
 
-def move_backward(time: int):
-    print("Move")
-    return {"action": "move", "status": "completed"}
+# def move_backward(time: int):
+#     print("Move")
+#     return {"action": "move", "status": "completed"}
 
-def turn_left(time: int):
-    print("Turn")
+# def turn_left(time: int):
+#     print("Turn")
 
-def turn_right(time: int):
-    print("Turn")
+# def turn_right(time: int):
+#     print("Turn")
 
-def grab():
-    print("Grab the Object")
+# def grab():
+#     print("Grab the Object")
+
+# def stop():
+#     print("Stop")
 
 '''
 Description for each function tool so that when gemini trys to assign a function it knows the data type that it should return and the description for each function
 '''
 
-move_foward_tool = {
+move_forward_tool = {
     "type": "function",
-    "name": "move_foward",
+    "name": "move_forward",
     "description": "moves the lego model fowards in a straight line",
     "parameters": {
         "type": "object",
@@ -80,6 +84,7 @@ turn_left_tool = {
         "type": "object",
         "properties": {
             "time": {
+                "type": "integer",
                 "description": "To turn left a time should be returned from 1 to 5 seconds. If no time is specified return 2 seconds"
             },
         },
@@ -94,9 +99,10 @@ turn_right_tool = {
     "description": "Rotate the LEGO model to the right",
     "parameters":
     {
-        "type": "time",
+        "type": "object",
         "properties": {
-            "degree": {
+            "time": {
+                "type": "integer",
                 "description": "To turn right, a time should be returned from 1 to 5 seconds. If no time is specified return 2 seconds"
             },
         },
@@ -117,10 +123,12 @@ grab_tool = {
 }
 
 available_functions = {
-    "move_foward": move_foward,
-    "move_backward": move_backward,
-    "turn_left": turn_left,
-    "turn_right": turn_right,
-    "grab": grab
+    "move_forward": command_library.CommandLibrary.move_forward,
+    "move_backward": command_library.CommandLibrary.move_backward,
+    "turn_left": command_library.CommandLibrary.turn_left,
+    "turn_right": command_library.CommandLibrary.turn_right,
+    "grab": command_library.CommandLibrary.grab
 }
+
+#start = time.perf_counter()
 

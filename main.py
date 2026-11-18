@@ -1,94 +1,168 @@
-import geminiCall
-from command import command_library
+"""Main pipeline: speech -> text (Vosk) -> function call (Gemini) -> robot.
+
+Run from the project folder:  python main.py
+
+The robot step uses the placeholder functions in geminiCall.py, which only
+print. command/command_library.py is not imported here: it uses Pybricks,
+which runs on the LEGO hub, not on the laptop.
+"""
 import time
-#import gemini.py, commandlibrary.py, vosk.py
 
-#start two nested while loop, one for whole program, another for vosk listening
+import geminiCall
+from vosk_stt.transcriber import Transcriber
+import asyncio
+from contextlib import suppress
+from bleak import BleakScanner, BleakClient
+from command import command_library
 
-#while for whole
+PYBRICKS_COMMAND_EVENT_CHAR_UUID = "c5f50002-8280-46da-89f4-6d8051e4aeef"
 
-#while for vosk -> output String
+# Replace this with the name of your hub if you changed
+# it when installing the Pybricks firmware.
+HUB_NAME = "Temple"
 
-#gemini take String -> output function call chosen from command library.py
-
-#Initializing the client
-from google import genai
-import json
-
-#from dotenv import load_dotenv
-#load_dotenv()
+MODEL = "gemini-3.5-flash-lite"
+TOOLS = [geminiCall.move_forward_tool,
+        geminiCall.move_backward_tool,
+        geminiCall.turn_left_tool,
+        geminiCall.turn_right_tool,
+        geminiCall.grab_tool]
 
 
-start = time.perf_counter()
+def listen(t):
+    """Record one phrase with Vosk and return the TranscriptResult."""
+    input("\nPress Enter to start talking...")
+    t.start()
+    input("Press Enter to stop...")
 
-fc_step = None
-result = None
+    started = time.perf_counter()
+    result = t.stop()
+    print(f"Vosk took {time.perf_counter() - started:.2f} s")
+    return result
 
-#This is the first call to Gemini Using the Voice-to-Text transcription
-try:
-    interaction = geminiCall.client.interactions.create(
-        model = "gemini-3.5-flash-lite",
-        input = "Move forward, then turn left",
-        tools = [geminiCall.move_foward_tool,
-                 #geminiCall.move_backward_tool,
-                geminiCall.turn_left_tool,
-                #geminiCall.turn_right_tool,
-                #geminiCall.grab_tool
-                ],
-        timeout=20,
-    )
 
-    #Looping through the gemini steps as we receive them
-    for step in interaction.steps:
-        #Looks for any steps that is the function call and if it is, then it will attempt to call the function and save it
-        if step.type == "function_call":
-            fc_step = step
-            function_to_call = geminiCall.available_functions[step.name]
-            result = function_to_call(**step.arguments)
-            break
+def ask_gemini(text):
+    started = time.perf_counter()
+    try:
+        interaction = geminiCall.client.interactions.create(
+            model=MODEL,
+            input=text,
+            tools=TOOLS,
+            timeout=20,
+        )
+        function_calls = []
 
+        for step in interaction.steps:
+            if step.type == "function_call":
+                fc_step = step
+
+                # Find and execute the corresponding Python function
+                function_to_call = geminiCall.available_functions[fc_step.name]
+                result = function_to_call(**fc_step.arguments)
+
+                function_calls.append(
+                    (fc_step.name, fc_step.arguments)
+                )
+
+        return function_calls
+    except Exception as e:
+        print("Gemini request failed:", type(e).__name__)
+        print(e)
+        return []
+    finally:
+        print(f"Gemini took {time.perf_counter() - started:.2f} s")
+
+
+def run_calls(calls):
+    """Run each function Gemini chose, if it is one we allow."""
+    for name, arguments in calls:
+        function = geminiCall.available_functions.get(name)
+        if function is None:
+            print(f"Ignored unknown function: {name}")
+            continue
+        print(f"Running {name}({arguments})")
+        function(**arguments)
+
+
+async def main():
+
+    main_task = asyncio.current_task()
+
+    def handle_disconnect(_):
+        print("Hub was disconnected.")
+
+        # If the hub disconnects before this program is done,
+        # cancel this program so it doesn't get stuck waiting
+        # forever.
+        if not main_task.done():
+            main_task.cancel()
+
+    ready_event = asyncio.Event()
+
+    def handle_rx(_, data: bytearray):
+        if data[0] == 0x01:  # "write stdout" event (0x01)
+            payload = data[1:]
+
+            if payload == b"rdy":
+                ready_event.set()
+            else:
+                print("Received:", payload)
+
+    # Do a Bluetooth scan to find the hub.
+    device = await BleakScanner.find_device_by_name(HUB_NAME)
+
+    if device is None:
+        print(f"could not find hub with name: {HUB_NAME}")
+        return
+
+    # Connect to the hub.
+    async with BleakClient(device, handle_disconnect) as client:
+
+        # Subscribe to notifications from the hub.
+        
+        commands = command_library.CommandLibrary(client, ready_event, PYBRICKS_COMMAND_EVENT_CHAR_UUID)
+        await client.start_notify(PYBRICKS_COMMAND_EVENT_CHAR_UUID, handle_rx)
+        
+
+
+        # Tell user to start program on the hub.
+        print("Start the program on the hub now with the button.")
+
+        # Send a few messages to the hub. Replace with vosk-gemini pipeline
+        # with Transcriber() as t:
+        #         print("Voice controller running. Ctrl+C to quit.")
+        #         try:
+        #             while True:
+        #                 result = listen(t)
+        #                 print(f'You said: "{result.text}"' if result.text
+        #                       else "(nothing recognized)")
+        
+        #                 if result.stop_heard:
+        #                     # Stop skips Gemini so it reaches the robot right away.
+        #                     # geminiCall.stop() is a placeholder for the robot's stop.
+        #                     print("STOP detected")
+        #                     geminiCall.stop()
+        #                 elif result.text:
+        #                     calls = ask_gemini(result.text)
+        #                     if calls:
+        #                         run_calls(calls)
+        #                     else:
+        #                         print("Gemini didn't choose a function. No action taken.")
+        
+        #                 if input("Keep recording? [Y/n] ").strip().lower() == "n":
+        #                     break
+        #         except KeyboardInterrupt:
+        #             pass
+        #         print("\nVoice controller stopped.")
+
+        # Send a message to indicate stop.
+        await commands.bye()
+
+        print("done.")
     
 
-#If there is an error in the call to gemini we catch it and say what the problem was
-except Exception as e:
-    print("Request failed:", type(e).__name__)
-    print(e)
 
-#For performance reasons we want to see how long a geminiAPI call takes from beginning to end
-finally:
-    end = time.perf_counter()
-    print(f"Response time: {end - start:.2f} seconds")
+if __name__ == "__main__":
+    with suppress(asyncio.CancelledError):
+        asyncio.run(main())
 
-
-#The continued function calls to geminiAPI that will call the next function if possible from the previous function call
-if fc_step is not None:
-    final_interaction = geminiCall.client.interactions.create(
-        model = "gemini-3.5-flash-lite",
-        input = [
-            {
-                "type": "function_result",
-                "name": fc_step.name,
-                "call_id": fc_step.id,
-                "result": [{"type": "text", "text": json.dumps(result)}]
-            }
-        ],
-        tools = [geminiCall.move_foward_tool,
-                 #geminiCall.move_backward_tool,
-                geminiCall.turn_left_tool,
-                #geminiCall.turn_right_tool,
-                #geminiCall.grab_tool
-                ],
-        #Used to store the previous function calls so that the next function calls are called in the correct sequeunce
-        previous_interaction_id = interaction.id,
-        timeout=20,
-    )
-
-    print(final_interaction.output_text)
-    for step in final_interaction.steps:
-        if step.type == "function_call":
-            function_to_call = geminiCall.available_functions[step.name]
-            next_result = function_to_call(**step.arguments)
-
-
-
- 
