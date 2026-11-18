@@ -29,7 +29,7 @@ class CommandLibrary:
     async def move_forward(self,time):
         
         
-        await self.send(b"fwd")
+        await self.send(b"mof")
         await asyncio.sleep(time)
         await self.send(b"stp")
 

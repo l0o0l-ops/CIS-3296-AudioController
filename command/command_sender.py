@@ -64,6 +64,7 @@ async def main():
         print("Start the program on the hub now with the button.")
 
         # Send a few messages to the hub. Replace with vosk-gemini pipeline
+        await commands.move_forward(5)
         await commands.grab()
 
         print(".", end="", flush=True)

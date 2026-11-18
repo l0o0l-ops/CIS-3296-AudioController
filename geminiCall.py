@@ -84,8 +84,8 @@ grab_tool = {
 }
 
 available_functions = {
-    "move": command_library.move,
-    "turn": command_library.turn,
+    "move": command_library.CommandLibrary.move_forward,
+    "turn": command_library.CommandLibrary.turn_right,
 }
 
 

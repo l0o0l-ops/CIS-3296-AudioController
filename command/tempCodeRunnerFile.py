@@ -1,17 +1,3 @@
-
-import asyncio
-from contextlib import suppress
-from bleak import BleakScanner, BleakClient
-from command_library import CommandLibrary
-
-PYBRICKS_COMMAND_EVENT_CHAR_UUID = "c5f50002-8280-46da-89f4-6d8051e4aeef"
-
-# Replace this with the name of your hub if you changed
-# it when installing the Pybricks firmware.
-HUB_NAME = "Temple"
-
-
-async def main():
     main_task = asyncio.current_task()
 
     def handle_disconnect(_):
@@ -55,6 +41,7 @@ async def main():
         print("Start the program on the hub now with the button.")
 
         # Send a few messages to the hub. Replace with vosk-gemini pipeline
+        await commands.move_forward(5)
         await commands.grab()
 
         print(".", end="", flush=True)
@@ -63,12 +50,3 @@ async def main():
         await commands.bye()
 
         print("done.")
-
-    # Hub disconnects here when async with block exits.
-
-
-# Run the main async program.
-if __name__ == "__main__":
-    with suppress(asyncio.CancelledError):
-        asyncio.run(main())
-
