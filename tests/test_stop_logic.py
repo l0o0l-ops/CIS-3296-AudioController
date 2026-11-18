@@ -7,8 +7,8 @@ import json
 import unittest
 from unittest import mock
 
-from acctl import transcriber
-from acctl.transcriber import Transcriber
+from vosk_stt import transcriber
+from vosk_stt.transcriber import Transcriber
 
 
 def result_json(text):
