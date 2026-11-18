@@ -6,14 +6,24 @@ The robot step uses the placeholder functions in geminiCall.py, which only
 print. command/command_library.py is not imported here: it uses Pybricks,
 which runs on the LEGO hub, not on the laptop.
 """
+
+import sys
+
+sys.coinit_flags = 0
+
+
 import time
+from contextlib import suppress
+import asyncio
 
 import geminiCall
-from vosk_stt.transcriber import Transcriber
-import asyncio
-from contextlib import suppress
-from bleak import BleakScanner, BleakClient
+from bleak import BleakClient, BleakScanner
 from command import command_library
+
+
+
+
+  
 
 PYBRICKS_COMMAND_EVENT_CHAR_UUID = "c5f50002-8280-46da-89f4-6d8051e4aeef"
 
@@ -68,6 +78,10 @@ def run_calls(calls):
         print(f"Running {name}({arguments})")
         function(**arguments)
 
+def _load_transcriber():
+    from vosk_stt.transcriber import Transcriber
+    return Transcriber
+
 
 async def main():
 
@@ -103,42 +117,42 @@ async def main():
     # Connect to the hub.
     async with BleakClient(device, handle_disconnect) as client:
 
-        # Subscribe to notifications from the hub.
-        
+        # Subscribe to notifications from the hub.    
         commands = command_library.CommandLibrary(client, ready_event, PYBRICKS_COMMAND_EVENT_CHAR_UUID)
         await client.start_notify(PYBRICKS_COMMAND_EVENT_CHAR_UUID, handle_rx)
-        
 
+        Transcriber = await asyncio.to_thread(_load_transcriber) #use different thread to avoid compatibility
 
         # Tell user to start program on the hub.
         print("Start the program on the hub now with the button.")
 
         # Send a few messages to the hub. Replace with vosk-gemini pipeline
-        # with Transcriber() as t:
-        #         print("Voice controller running. Ctrl+C to quit.")
-        #         try:
-        #             while True:
-        #                 result = listen(t)
-        #                 print(f'You said: "{result.text}"' if result.text
-        #                       else "(nothing recognized)")
+        with Transcriber() as t:
+                print("Voice controller running. Ctrl+C to quit.")
+                try:
+                    while True:
+                        result = await asyncio.to_thread(listen,t)
+                        print(f'You said: "{result.text}"' if result.text
+                              else "(nothing recognized)")
         
-        #                 if result.stop_heard:
-        #                     # Stop skips Gemini so it reaches the robot right away.
-        #                     # geminiCall.stop() is a placeholder for the robot's stop.
-        #                     print("STOP detected")
-        #                     geminiCall.stop()
-        #                 elif result.text:
-        #                     calls = ask_gemini(result.text)
-        #                     if calls:
-        #                         run_calls(calls)
-        #                     else:
-        #                         print("Gemini didn't choose a function. No action taken.")
-        
-        #                 if input("Keep recording? [Y/n] ").strip().lower() == "n":
-        #                     break
-        #         except KeyboardInterrupt:
-        #             pass
-        #         print("\nVoice controller stopped.")
+                        if result.stop_heard:
+                            # Stop skips Gemini so it reaches the robot right away.
+                            # geminiCall.stop() is a placeholder for the robot's stop.
+                            print("STOP detected")
+                            geminiCall.stop()
+                        elif result.text:
+                            calls = await asyncio.to_thread(ask_gemini, result.text)
+                            if calls:
+                                run_calls(calls)
+                            else:
+                                print("Gemini didn't choose a function. No action taken.")
+
+                        answer = await asyncio.to_thread(input, "Keep recording?  [Y/n] ")
+                        if answer.strip().lower() == "n":
+                            break
+                except KeyboardInterrupt:
+                    pass
+                print("\nVoice controller stopped.")
 
         # Send a message to indicate stop.
         await commands.bye()
