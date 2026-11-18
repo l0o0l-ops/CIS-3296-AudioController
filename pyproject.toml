@@ -8,7 +8,6 @@ version = "0.1.0"
 description = "Voice-controlled LEGO robot (CIS-3296)"
 requires-python = ">=3.10"
 dependencies = [
-    "typer",
     "vosk",
     "sounddevice",
     "google-genai",
@@ -16,9 +15,5 @@ dependencies = [
     "python-dotenv",
 ]
 
-[project.scripts]
-acctl = "acctl.cli:app"
-
 [tool.setuptools]
-packages = ["acctl"]
-py-modules = ["geminiCall", "main"]
+packages = ["vosk_stt"]

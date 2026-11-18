@@ -1,6 +1,6 @@
 """Main pipeline: speech -> text (Vosk) -> function call (Gemini) -> robot.
 
-Run it with either:  python main.py   or   acctl start
+Run from the project folder:  python main.py
 
 The robot step uses the placeholder functions in geminiCall.py, which only
 print. command/command_library.py is not imported here: it uses Pybricks,
@@ -8,10 +8,8 @@ which runs on the LEGO hub, not on the laptop.
 """
 import time
 
-import typer
-
 import geminiCall
-from acctl.transcriber import Transcriber
+from vosk_stt.transcriber import Transcriber
 
 MODEL = "gemini-3.5-flash-lite"
 TOOLS = [geminiCall.move_tool, geminiCall.turn_tool]
@@ -82,7 +80,7 @@ def main():
                     else:
                         print("Gemini didn't choose a function. No action taken.")
 
-                if not typer.confirm("Keep recording?", default=True):
+                if input("Keep recording? [Y/n] ").strip().lower() == "n":
                     break
         except KeyboardInterrupt:
             pass

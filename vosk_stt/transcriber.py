@@ -18,7 +18,7 @@ from pathlib import Path
 import sounddevice as sd
 from vosk import Model, KaldiRecognizer, SetLogLevel
 
-# Project root is one level above this file (acctl/), so this works from any folder.
+# Project root is one level above this file (vosk_stt/), so this works from any folder.
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_MODEL_PATH = PROJECT_ROOT / "models" / "vosk-model-small-en-us-0.15"
 BLOCKSIZE = 4000  # samples per audio chunk (about 0.25 s at 16 kHz)
