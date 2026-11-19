@@ -122,13 +122,7 @@ grab_tool = {
     }
 }
 
-available_functions = {
-    "move_forward": command_library.CommandLibrary.move_forward,
-    "move_backward": command_library.CommandLibrary.move_backward,
-    "turn_left": command_library.CommandLibrary.turn_left,
-    "turn_right": command_library.CommandLibrary.turn_right,
-    "grab": command_library.CommandLibrary.grab
-}
+
 
 #start = time.perf_counter()
 
