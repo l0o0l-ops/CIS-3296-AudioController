@@ -100,6 +100,9 @@ def _load_transcriber():
 
 async def main():
 
+    Transcriber = await asyncio.to_thread(_load_transcriber) #use different thread to avoid compatibility
+    print("model inport")
+
     main_task = asyncio.current_task()
 
     def handle_disconnect(_):
@@ -129,45 +132,46 @@ async def main():
         print(f"could not find hub with name: {HUB_NAME}")
         return
 
+
     # Connect to the hub.
-    async with BleakClient(device, handle_disconnect) as client:
+    with Transcriber() as t:
+        print("Voice controller running. Ctrl+C to quit.")
+        async with BleakClient(device, handle_disconnect) as client:
 
-        # Subscribe to notifications from the hub.    
-        commands = command_library.CommandLibrary(client, ready_event, PYBRICKS_COMMAND_EVENT_CHAR_UUID)
-        await client.start_notify(PYBRICKS_COMMAND_EVENT_CHAR_UUID, handle_rx)
-
-        Transcriber = await asyncio.to_thread(_load_transcriber) #use different thread to avoid compatibility
-
-        # Tell user to start program on the hub.
-        print("Start the program on the hub now with the button.")
+            # Subscribe to notifications from the hub.    
+            commands = command_library.CommandLibrary(client, ready_event, PYBRICKS_COMMAND_EVENT_CHAR_UUID)
+            await client.start_notify(PYBRICKS_COMMAND_EVENT_CHAR_UUID, handle_rx)
+            # Tell user to start program on the hub.
+            print("Start the program on the hub now with the button.")
+        
 
         # Send a few messages to the hub. Replace with vosk-gemini pipeline
-        with Transcriber() as t:
-                print("Voice controller running. Ctrl+C to quit.")
-                try:
-                    while True:
-                        result = await asyncio.to_thread(listen,t)
-                        print(f'You said: "{result.text}"' if result.text
-                              else "(nothing recognized)")
         
-                        if result.stop_heard:
-                            # Stop skips Gemini so it reaches the robot right away.
-                            # geminiCall.stop() is a placeholder for the robot's stop.
-                            print("STOP detected")
-                            geminiCall.stop()
-                        elif result.text:
-                            calls = await asyncio.to_thread(ask_gemini, result.text)
-                            if calls:
-                                run_calls(calls)
-                            else:
-                                print("Gemini didn't choose a function. No action taken.")
+        
+            try:
+                while True:
+                    result = await asyncio.to_thread(listen,t)
+                    print(f'You said: "{result.text}"' if result.text
+                            else "(nothing recognized)")
+    
+                    if result.stop_heard:
+                        # Stop skips Gemini so it reaches the robot right away.
+                        # geminiCall.stop() is a placeholder for the robot's stop.
+                        print("STOP detected")
+                        geminiCall.stop()
+                    elif result.text:
+                        calls = await asyncio.to_thread(ask_gemini, result.text)
+                        if calls:
+                            run_calls(calls)
+                        else:
+                            print("Gemini didn't choose a function. No action taken.")
 
-                        answer = await asyncio.to_thread(input, "Keep recording?  [Y/n] ")
-                        if answer.strip().lower() == "n":
-                            break
-                except KeyboardInterrupt:
-                    pass
-                print("\nVoice controller stopped.")
+                    answer = await asyncio.to_thread(input, "Keep recording?  [Y/n] ")
+                    if answer.strip().lower() == "n":
+                        break
+            except KeyboardInterrupt:
+                pass
+            print("\nVoice controller stopped.")
 
         # Send a message to indicate stop.
         await commands.bye()
