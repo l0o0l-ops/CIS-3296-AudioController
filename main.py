@@ -71,6 +71,7 @@ def ask_gemini(text):
                 result = function_to_call(**fc_step.arguments)
 
                 function_calls.append(
+
                     (fc_step.name, fc_step.arguments)
                 )
 
