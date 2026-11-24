@@ -39,6 +39,8 @@ TOOLS = [geminiCall.move_forward_tool,
         geminiCall.grab_tool]
 
 
+
+
 def listen(t):
     """Record one phrase with Vosk and return the TranscriptResult."""
     input("\nPress Enter to start talking...")
@@ -50,50 +52,6 @@ def listen(t):
     print(f"Vosk took {time.perf_counter() - started:.2f} s")
     return result
 
-
-def ask_gemini(text):
-    started = time.perf_counter()
-    try:
-        interaction = geminiCall.client.interactions.create(
-            model=MODEL,
-            input=text,
-            tools=TOOLS,
-            timeout=20,
-        )
-        function_calls = []
-
-        for step in interaction.steps:
-            if step.type == "function_call":
-                fc_step = step
-
-                # Find and execute the corresponding Python function
-                function_to_call = geminiCall.available_functions[fc_step.name]
-                result = function_to_call(**fc_step.arguments)
-
-                function_calls.append(
-
-                    (fc_step.name, fc_step.arguments)
-                )
-
-        return function_calls
-    except Exception as e:
-        print("Gemini request failed:", type(e).__name__)
-        print(e)
-        return []
-    finally:
-        print(f"Gemini took {time.perf_counter() - started:.2f} s")
-
-
-def run_calls(calls):
-    """Run each function Gemini chose, if it is one we allow."""
-    for name, arguments in calls:
-        function = geminiCall.available_functions.get(name)
-        if function is None:
-            print(f"Ignored unknown function: {name}")
-            continue
-        print(f"Running {name}({arguments})")
-        function(**arguments)
-
 def _load_transcriber():
     from vosk_stt.transcriber import Transcriber
     return Transcriber
@@ -102,7 +60,7 @@ def _load_transcriber():
 async def main():
 
     Transcriber = await asyncio.to_thread(_load_transcriber) #use different thread to avoid compatibility
-    print("model inport")
+    print("model import")
 
     main_task = asyncio.current_task()
 
@@ -126,35 +84,93 @@ async def main():
             else:
                 print("Received:", payload)
 
-    # Do a Bluetooth scan to find the hub.
-    device = await BleakScanner.find_device_by_name(HUB_NAME)
-
-    if device is None:
-        print(f"could not find hub with name: {HUB_NAME}")
-        return
-
 
     # Connect to the hub.
     with Transcriber() as t:
-        print("Voice controller running. Ctrl+C to quit.")
-        async with BleakClient(device, handle_disconnect) as client:
+        try:
+            print("Voice controller running. Ctrl+C to quit.")
+                # Do a Bluetooth scan to find the hub.
+            device = await BleakScanner.find_device_by_name(HUB_NAME)
 
-            # Subscribe to notifications from the hub.    
-            commands = command_library.CommandLibrary(client, ready_event, PYBRICKS_COMMAND_EVENT_CHAR_UUID)
-            await client.start_notify(PYBRICKS_COMMAND_EVENT_CHAR_UUID, handle_rx)
-            # Tell user to start program on the hub.
-            print("Start the program on the hub now with the button.")
-        
+            if device is None:
+                print(f"could not find hub with name: {HUB_NAME}")
+                return
+            else:
+                print(f"{HUB_NAME} found!")
+            async with BleakClient(device, handle_disconnect) as client:
 
-        # Send a few messages to the hub. Replace with vosk-gemini pipeline
+                # Subscribe to notifications from the hub.    
+                commands = command_library.CommandLibrary(client, ready_event, PYBRICKS_COMMAND_EVENT_CHAR_UUID)
+                await client.start_notify(PYBRICKS_COMMAND_EVENT_CHAR_UUID, handle_rx)
+                available_functions = {
+                        "move_forward": commands.move_forward,
+                        "move_backward": commands.move_backward,
+                        "turn_left": commands.turn_left,
+                        "turn_right": commands.turn_right,
+                        "grab": commands.grab
+                        }
+
+                def ask_gemini(text):
+                    started = time.perf_counter()
+                    
+                    try:
+                        interaction = geminiCall.client.interactions.create(
+                            model=MODEL,
+                            input=text,
+                            tools=TOOLS,
+                            timeout=20,
+                        )
+                        function_calls = []
+
+                        for step in interaction.steps:
+                            if step.type == "function_call":
+                                fc_step = step
+
+                                # #Find and execute the corresponding Python function
+                                # function_to_call = available_functions[fc_step.name]
+                                # result = function_to_call(**fc_step.arguments)
+
+                                function_calls.append(
+                                    (fc_step.name, fc_step.arguments)
+                                )
+
+                        return function_calls
+                    except Exception as e:
+                        print("Gemini request failed:", type(e).__name__)
+                        print(e)
+                        return []
+                    finally:
+                        print(f"Gemini took {time.perf_counter() - started:.2f} s")
+
+
+                async def run_calls(calls):
+                    """Run each function Gemini chose, if it is one we allow."""
+
+                    
+                    for name, arguments in calls:
+                        function = available_functions.get(name)
+                        if function is None:
+                            print(f"Ignored unknown function: {name}")
+                            continue
+                        print(f"Running {name}({arguments})")
+                        result = await function(**arguments)
+                         
+
+                    
+                    # Tell user to start program on the hub.
+                print("Start the program on the hub now with the button.")
+
+                
+
+            # Send a few messages to the hub. Replace with vosk-gemini pipeline
         
         
-            try:
+            
                 while True:
                     result = await asyncio.to_thread(listen,t)
                     print(f'You said: "{result.text}"' if result.text
                             else "(nothing recognized)")
-    
+
                     if result.stop_heard:
                         # Stop skips Gemini so it reaches the robot right away.
                         # geminiCall.stop() is a placeholder for the robot's stop.
@@ -163,19 +179,20 @@ async def main():
                     elif result.text:
                         calls = await asyncio.to_thread(ask_gemini, result.text)
                         if calls:
-                            run_calls(calls)
+                            await run_calls(calls)
                         else:
                             print("Gemini didn't choose a function. No action taken.")
 
                     answer = await asyncio.to_thread(input, "Keep recording?  [Y/n] ")
                     if answer.strip().lower() == "n":
+                        await commands.bye()
                         break
-            except KeyboardInterrupt:
-                pass
-            print("\nVoice controller stopped.")
+        except KeyboardInterrupt:
+            pass
+        print("\nVoice controller stopped.")
 
         # Send a message to indicate stop.
-        await commands.bye()
+        
 
         print("done.")
     
