@@ -18,13 +18,18 @@ git clone https://github.com/l0o0l-ops/CIS-3296-AudioController
 python -m pip install -r requirements.txt
 ```
 
-5) Hardware setup
+5) Download Vosk model
+    1) make "models" folder in cloned repository
+    2) Download "vosk-model-small-en-us-0.15" from https://alphacephei.com/vosk/models
+    3) extract downloaded zip file under the "model" folder made in 1
+
+6) Hardware setup
     1) prepare [LEGO mindstorm Robot Inventor](https://www.lego.com/ja-jp/service/device-guide/mindstorms-robot-inventor)
     2) build the robot using the [build guide](https://www.lego.com/cdn/product-assets/product.bi.additional.main.pdf/51515_MVP.pdf)
     3) connect the hub to your PC, and install pybricks firmware from [pybricks website](https://code.pybricks.com/), set the name of hub to "Temple"
     4) drag and drop command/command_listener.py to the pybricks website, and run it on hub, it will write the pyfile into the Hub
 
-6) Set up .env file
+7) Set up .env file
 access to [Gemini api studio](https://aistudio.google.com/api-keys) and create api key for new project, and add "GEMINI_API_KEY = {YOUR_API_KEY}" to .env file
 
 ### Run instructions
