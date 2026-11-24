@@ -7,7 +7,6 @@ Speech -> text (Vosk) -> function call (Gemini) -> Bluetooth command -> robot.
 - The team's LEGO Mindstorms robot, with its hub already set up (drive motor on port B, steering on A, grabber on D)
 - A computer with Bluetooth and a microphone (developed on macOS and Windows; the full pipeline has been run on macOS)
 - Python 3 (the team used 3.14) and git
-- Chrome or Edge (only needed for hub setup, step 6)
 - A Gemini API key
 - The Vosk speech model (download, see step 4)
 
@@ -56,15 +55,7 @@ GEMINI_API_KEY=your_key_here
 ```
 Write it without spaces around `=` and without quotes or braces. Never commit `.env` (it is already in `.gitignore`).
 
-### 6) Hub setup (skip this: the team's robot is already set up)
-This project uses one robot. Its hub is already named `Temple`, has the Pybricks firmware, and has `command/command_listener.py` stored on it, so you can skip this step. Only repeat it if the hub is reset or replaced, or if `command_listener.py` is changed.
-
-1. Build the robot using the [build guide](https://www.lego.com/cdn/product-assets/product.bi.additional.main.pdf/51515_MVP.pdf).
-2. Connect the hub to your computer by USB, open [code.pybricks.com](https://code.pybricks.com/) in Chrome or Edge, and install the Pybricks firmware (version 3.3.0 or later).
-3. Set the name of the hub to `Temple`.
-4. Open `command/command_listener.py` in the Pybricks website and run it once. This stores the program on the hub.
-
-### 7) macOS permissions
+### 6) macOS permissions
 The first run asks for Bluetooth and microphone access. Allow both for Terminal (or VS Code). If you denied it by mistake, change it in System Settings > Privacy & Security.
 
 ## Run instructions
