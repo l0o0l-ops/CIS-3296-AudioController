@@ -12,35 +12,6 @@ load_dotenv()
 import time
 client = genai.Client()
 
-
-
-#Robot Functions
-#Below here will be the list of functions that model will be able to do
-#For now these are just placeholders for testing time delays in gemini and to see if it actually works or not
-# def move_foward(time: int):
-#     print("Move")
-#     return {"action": "move_foward", "status": "completed"}
-
-# def move_backward(time: int):
-#     print("Move")
-#     return {"action": "move", "status": "completed"}
-
-# def turn_left(time: int):
-#     print("Turn")
-
-# def turn_right(time: int):
-#     print("Turn")
-
-# def grab():
-#     print("Grab the Object")
-
-# def stop():
-#     print("Stop")
-
-'''
-Description for each function tool so that when gemini trys to assign a function it knows the data type that it should return and the description for each function
-'''
-
 move_forward_tool = {
     "type": "function",
     "name": "move_forward",
@@ -123,6 +94,4 @@ grab_tool = {
 }
 
 
-
-#start = time.perf_counter()
 

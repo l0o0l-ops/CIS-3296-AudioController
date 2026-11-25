@@ -1,10 +1,10 @@
-"""Main pipeline: speech -> text (Vosk) -> function call (Gemini) -> robot.
+"""Main pipeline: speech -> text (Vosk) -> function calls (Gemini) -> robot.
 
-Run from the project folder:  python main.py
+Run from the project folder: python main.py
 
-The robot step uses the placeholder functions in geminiCall.py, which only
-print. command/command_library.py is not imported here: it uses Pybricks,
-which runs on the LEGO hub, not on the laptop.
+Vosk handles speech recognition on the laptop.
+Gemini selects the LEGO commands.
+command_library.py sends commands to the LEGO hub over Bluetooth.
 """
 
 import sys
@@ -110,31 +110,69 @@ async def main():
                         "grab": commands.grab
                         }
 
-                def ask_gemini(text):
+                async def ask_gemini(text):
+
+
                     started = time.perf_counter()
+                    user_input = text
+                    previous_id = None
                     
                     try:
-                        interaction = geminiCall.client.interactions.create(
-                            model=MODEL,
-                            input=text,
-                            tools=TOOLS,
-                            timeout=20,
-                        )
-                        function_calls = []
+                        while True:
 
-                        for step in interaction.steps:
-                            if step.type == "function_call":
-                                fc_step = step
-
-                                # #Find and execute the corresponding Python function
-                                # function_to_call = available_functions[fc_step.name]
-                                # result = function_to_call(**fc_step.arguments)
-
-                                function_calls.append(
-                                    (fc_step.name, fc_step.arguments)
+                            if previous_id is None:
+                                interaction = await asyncio.to_thread(
+                                    geminiCall.client.interactions.create,
+                                    model=MODEL,
+                                    input=user_input,
+                                    tools=TOOLS,
+                                    timeout=20,
                                 )
+                            else:
+                                interaction = await asyncio.to_thread(
+                                    geminiCall.client.interactions.create,
+                                    model=MODEL,
+                                    input=user_input,
+                                    tools=TOOLS,
+                                    timeout=20,
+                                    previous_interaction_id=previous_id,
+                                )
+                            
+                            previous_id = interaction.id
 
-                        return function_calls
+                            function_call = None
+
+                            for step in interaction.steps:
+                                if step.type == "function_call":
+                                    function_call = step
+                                    break
+
+                            if function_call is None:
+                                print("Gemini:", interaction.output_text)
+                                break
+                            
+                            function = available_functions.get(function_call.name)
+
+
+                            if function is None:
+                                print(f"Unknown function: {function_call.name}")
+                                break
+                            print(f"Running {function_call.name}({function_call.arguments})")
+
+                            #result = await function(**function_call.arguments)
+                            result = await function(**(function_call.arguments or {}))
+
+                            print(f"Function result: {result}")
+
+                            # Send the result back to Gemini.
+                            user_input = [
+                                {
+                                    "type": "function_result",
+                                    "name": function_call.name,
+                                    "call_id": function_call.id,
+                                    "result": str(result)
+                                }
+                            ]
                     except Exception as e:
                         print("Gemini request failed:", type(e).__name__)
                         print(e)
@@ -142,19 +180,6 @@ async def main():
                     finally:
                         print(f"Gemini took {time.perf_counter() - started:.2f} s")
 
-
-                async def run_calls(calls):
-                    """Run each function Gemini chose, if it is one we allow."""
-
-                    
-                    for name, arguments in calls:
-                        function = available_functions.get(name)
-                        if function is None:
-                            print(f"Ignored unknown function: {name}")
-                            continue
-                        print(f"Running {name}({arguments})")
-                        result = await function(**arguments)
-                         
 
                     
                     # Tell user to start program on the hub.
@@ -177,11 +202,7 @@ async def main():
                         print("STOP detected")
                         geminiCall.stop()
                     elif result.text:
-                        calls = await asyncio.to_thread(ask_gemini, result.text)
-                        if calls:
-                            await run_calls(calls)
-                        else:
-                            print("Gemini didn't choose a function. No action taken.")
+                        await ask_gemini(result.text)
 
                     answer = await asyncio.to_thread(input, "Keep recording?  [Y/n] ")
                     if answer.strip().lower() == "n":
