@@ -23,8 +23,7 @@ from command import command_library
 
 
 
-  
-
+#ID to tell Hub that command comes from same device
 PYBRICKS_COMMAND_EVENT_CHAR_UUID = "c5f50002-8280-46da-89f4-6d8051e4aeef"
 
 # Replace this with the name of your hub if you changed

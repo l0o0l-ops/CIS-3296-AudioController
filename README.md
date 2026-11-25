@@ -58,6 +58,13 @@ Write it without spaces around `=` and without quotes or braces. Never commit `.
 ### 6) macOS permissions
 The first run asks for Bluetooth and microphone access. Allow both for Terminal (or VS Code). If you denied it by mistake, change it in System Settings > Privacy & Security.
 
+### 7) Hardware setup (not required if hub is already set up)
+
+prepare LEGO mindstorm Robot Inventor
+build the robot using the build guide
+connect the hub to your PC, and install pybricks firmware from pybricks website, set the name of hub to "Temple"
+drag and drop command/command_listener.py to the pybricks website, and run it on hub, it will write the pyfile into the Hub
+
 ## Run instructions
 1. Turn on the hub. Press its button and check that the Bluetooth light is on. Close any other app connected to the hub (for example a Pybricks website tab).
 2. In the project folder, with the virtual environment active, run:
