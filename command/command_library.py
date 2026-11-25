@@ -33,12 +33,16 @@ class CommandLibrary:
         await asyncio.sleep(time)
         await self.send(b"stp")
 
+        return "completed"
+
     async def move_backward(self,time):
         
         
         await self.send(b"mob")
         await asyncio.sleep(time)
         await self.send(b"stp")
+
+        return "completed"
 
     async def bye(self):
         await self.send(b"bye")
@@ -52,6 +56,8 @@ class CommandLibrary:
         await self.send(b"mos")
         await self.send(b"res")
 
+        return "completed"
+
         
 
     async def turn_left(self, time):
@@ -61,11 +67,15 @@ class CommandLibrary:
         await asyncio.sleep(time)
         await self.send(b"mos")
         await self.send(b"res")
+
+        return "completed"
     
 
 
     async def grab(self):
         await self.send(b"grb")
+
+        return "completed"
         
         # self.motor_d.run_target(300, 360)
         # wait(500)
