@@ -38,14 +38,17 @@ while True:
         wheel_motor.dc(50)
     elif cmd == b"mos": #stop moving
         wheel_motor.stop() 
+
     elif cmd == b"tur": #turn right
         dir_motor.dc(-30)
         wait(1)
-        dir_motor.stop
+        dir_motor.stop()
+
     elif cmd == b"tul": #turn left
         dir_motor.dc(30)
         wait(1)
-        dir_motor.stop
+        dir_motor.stop()
+
     elif cmd == b"res": #reset front wheel angle
         dir_motor.run_target(150, 0)
     elif cmd == b"grb": #grab

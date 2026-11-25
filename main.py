@@ -11,7 +11,7 @@ import sys
 
 sys.coinit_flags = 0
 
-
+import tkinter as tk
 import time
 from contextlib import suppress
 import asyncio
@@ -19,7 +19,7 @@ import asyncio
 import geminiCall
 from bleak import BleakClient, BleakScanner
 from command import command_library
-
+from tkinter import messagebox, scrolledtext
 
 
 
@@ -159,7 +159,7 @@ async def main():
                     
                     # Tell user to start program on the hub.
                 print("Start the program on the hub now with the button.")
-
+                await asyncio.sleep(5)
                 
 
             # Send a few messages to the hub. Replace with vosk-gemini pipeline
